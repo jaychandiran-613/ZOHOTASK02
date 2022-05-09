@@ -2,34 +2,33 @@
 #include<thread>
 #include<unistd.h>
 #include<time.h>
-#include<string.h>
-#include<semaphore.h>
 #include<mutex>
+#include<queue>
 using namespace std;
-#define Thread_size 2
-int buffer[10];
-int count = 0;
+int size;
+int x = 0;
+queue<int> qvalues;
 mutex mt;
-sem_t semEmpty;
-sem_t semFull;
 int bufferstatus = 1;
 void* producer()
-{   string sample;
+{   
     while (1)
     
     {   
-        if(bufferstatus == 1)
+        
+        if(size<5)
         {
-            int x = rand() % 10;
-        sleep(2);
-        sem_wait(&semEmpty);
+        
         mt.lock();
-        buffer[count] = x;
-        count++;
+        sleep(1);
+        qvalues.push(++x);
+        size = qvalues.size();
         mt.unlock();
-        sem_post(&semFull);
-        cout<<"generator : " <<x<<endl;
-        bufferstatus =0;
+        cout<<"producer : " <<qvalues.back()<<endl;
+        if(size==5)
+        {
+            bufferstatus = 0;
+        }
         }
     }
     
@@ -39,18 +38,18 @@ void* producer()
 void* consumer()
 {   
     while (1)
-    {  if(bufferstatus == 0)
+    {  
+        if(bufferstatus == 0)
        {
            int y;
-        sem_wait(&semFull);
         mt.lock();
-        y = buffer[count -1];
-        count--;
+        y = qvalues.front();
+        qvalues.pop();
+        size = qvalues.size();
+        sleep(1);
         mt.unlock();
-        sem_post(&semEmpty);
         cout<<"The consumer received the variable : "<<y<<endl;
-        sleep(2);
-        bufferstatus =1;
+        bufferstatus = 1;
        }
     }
 }

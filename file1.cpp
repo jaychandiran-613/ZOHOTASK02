@@ -12,13 +12,16 @@ int count = 0;
 mutex mt;
 sem_t semEmpty;
 sem_t semFull;
+int bufferstatus = 1;
 void* producer()
 {   string sample;
     while (1)
     
     {   
-        int x = rand() % 10;
-        sleep(3);
+        if(bufferstatus == 1)
+        {
+            int x = rand() % 10;
+        sleep(2);
         sem_wait(&semEmpty);
         mt.lock();
         buffer[count] = x;
@@ -26,7 +29,8 @@ void* producer()
         mt.unlock();
         sem_post(&semFull);
         cout<<"generator : " <<x<<endl;
-        
+        bufferstatus =0;
+        }
     }
     
     
@@ -35,7 +39,9 @@ void* producer()
 void* consumer()
 {   
     while (1)
-    {  int y;
+    {  if(bufferstatus == 0)
+       {
+           int y;
         sem_wait(&semFull);
         mt.lock();
         y = buffer[count -1];
@@ -43,7 +49,9 @@ void* consumer()
         mt.unlock();
         sem_post(&semEmpty);
         cout<<"The consumer received the variable : "<<y<<endl;
-        sleep(3);
+        sleep(2);
+        bufferstatus =1;
+       }
     }
 }
 int main()

@@ -19,7 +19,9 @@ void* producer()
         if(size<5)
         {
         
-        mt.lock();
+        if(bufferstatus == 1)
+        {
+            mt.lock();
         sleep(1);
         qvalues.push(++x);
         size = qvalues.size();
@@ -28,6 +30,7 @@ void* producer()
         if(size==5)
         {
             bufferstatus = 0;
+        }
         }
         }
     }
@@ -49,7 +52,11 @@ void* consumer()
         sleep(1);
         mt.unlock();
         cout<<"The consumer received the variable : "<<y<<endl;
-        bufferstatus = 1;
+        if(size==0)
+        {
+            bufferstatus = 1;
+
+        }
        }
     }
 }
